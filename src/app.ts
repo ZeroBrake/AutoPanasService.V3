@@ -1,8 +1,9 @@
 import { Hono } from 'hono'
-import tasksRoutes from './routes/tasks'
+import vehiclesRoutes from './modules/vehicles/presentation/routes/vehicles.routes'
 
 const app = new Hono()
+const basePath = '/api';
 
-app.route('/tasks', tasksRoutes)
+app.route(basePath, vehiclesRoutes)
 
 export default app

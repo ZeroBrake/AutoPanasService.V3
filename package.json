@@ -10,6 +10,9 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "@libsql/client": "^0.15.10",
+    "@prisma/adapter-libsql": "^6.13.0",
+    "@prisma/client": "^6.13.0",
     "hono": "^4.8.12",
     "uuid": "^11.1.0"
   }
