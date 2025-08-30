@@ -7,3 +7,143 @@ datasource db {
   provider = "sqlite"
   url      = "file:./dev.db"
 }
+
+model VehicleMaker {
+  Id        String   @id @default(uuid())
+  Name     String
+  CreatedAt DateTime @default(now())
+  UpdatedAt DateTime @updatedAt
+
+  Models VehicleMakerModel[]
+  UserSearchs UserSearch[]
+  UserReviews UserReview[]
+}
+
+model VehicleMakerModel {
+  Id        String   @id @default(uuid())
+  MakerId   String
+  BodyTypeId   String? // Default body type
+  Name      String
+  CreatedAt DateTime @default(now())
+  UpdatedAt DateTime @updatedAt 
+
+  Years VehicleMakerModelYear[]
+  UserSearchs UserSearch[]
+  UserReviews UserReview[]
+
+  Maker   VehicleMaker   @relation(fields: [MakerId], references: [Id])
+  BodyType   VehicleBodyType?   @relation(fields: [BodyTypeId], references: [Id])
+}
+
+model VehicleMakerModelYear {
+  Id        String   @id @default(uuid())
+  ModelId   String
+  BodyTypeId   String? // Must override the body type of the model
+  Name      String
+  CreatedAt DateTime @default(now())
+  UpdatedAt DateTime @updatedAt
+
+  Trims VehicleMakerModelTrim[]
+  UserSearchs UserSearch[]
+  UserReviews UserReview[]
+
+  Model   VehicleMakerModel   @relation(fields: [ModelId], references: [Id])
+  BodyType   VehicleBodyType?   @relation(fields: [BodyTypeId], references: [Id])
+}
+
+model VehicleMakerModelTrim {
+  Id        String   @id @default(uuid())
+  ModelYearId   String
+  BodyTypeId   String? // Must override the body type of the model year
+  Name      String
+  CreatedAt DateTime @default(now())
+  UpdatedAt DateTime @updatedAt
+
+  UserSearchs UserSearch[]
+  Reviews UserReview[]
+
+  ModelYear   VehicleMakerModelYear   @relation(fields: [ModelYearId], references: [Id])
+  BodyType   VehicleBodyType?   @relation(fields: [BodyTypeId], references: [Id])
+}
+
+model VehicleBodyType {
+  Id        String   @id @default(uuid())
+  Name      String
+  CreatedAt DateTime @default(now())
+  UpdatedAt DateTime @updatedAt
+
+  Trims VehicleMakerModelTrim[]
+  Models VehicleMakerModel[]
+  Years VehicleMakerModelYear[]
+}
+
+model User {
+  Id        String   @id @default(uuid())
+  Name      String
+  Email     String   @unique
+  CreatedAt DateTime @default(now())
+  UpdatedAt DateTime @updatedAt
+
+  UserSearchs UserSearch[]
+  UserReviews UserReview[]
+}
+
+// Search made by a user
+model UserSearch {
+  Id        String   @id @default(uuid())
+  UserId    String
+  MakerId   String
+  ModelId   String?
+  YearId    String?
+  TrimId    String?
+
+  User   User   @relation(fields: [UserId], references: [Id])
+  Maker   VehicleMaker   @relation(fields: [MakerId], references: [Id])
+  Model   VehicleMakerModel?   @relation(fields: [ModelId], references: [Id])
+  Year   VehicleMakerModelYear?   @relation(fields: [YearId], references: [Id])
+  Trim   VehicleMakerModelTrim?   @relation(fields: [TrimId], references: [Id])
+}
+
+// Review made by a user. The secondary review. Also a comment.
+model UserReview {
+  Id        String   @id @default(uuid())
+  UserId    String
+  MakerId   String
+  ModelId   String
+  YearId    String
+  TrimId    String?
+  Rating    Int
+  Kind      Int
+  Comment   String
+  IsMain      Boolean @default(false) // If so, it will be displayed as the main review
+  CreatedAt DateTime @default(now())
+  UpdatedAt DateTime @updatedAt
+
+  User   User   @relation(fields: [UserId], references: [Id])
+  Maker   VehicleMaker   @relation(fields: [MakerId], references: [Id])
+  Model   VehicleMakerModel   @relation(fields: [ModelId], references: [Id])
+  Year   VehicleMakerModelYear   @relation(fields: [YearId], references: [Id])
+  Trim   VehicleMakerModelTrim?   @relation(fields: [TrimId], references: [Id])
+}
+
+// Posts about vehicles on sale
+model VehicleArticle {
+  Id        String   @id @default(uuid())
+  Title     String
+  Body      String?
+  Data      Json // Fuel, Maker, Model, Year, Trim, BodyType, etc.
+  Price     Float
+  Currenccy Int // This is a enum
+  Url       String   @unique
+  PictureUrl   String
+  IsAccepted   Boolean 
+  IsVerified   Boolean
+  IsAnalyzedSuccessfully   Boolean // `false` if the may exists an error while analyzing the article
+  UsageType   Int // This is a enum
+  Website     Int // This is a enum. Facebook, SuperCarros, etc.
+  CreatedAt DateTime @default(now())
+  UpdatedAt DateTime @updatedAt
+
+  @@index([IsAccepted])
+  @@index([IsVerified])
+}
